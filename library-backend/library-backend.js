@@ -1,5 +1,15 @@
-const { ApolloServer } = require("@apollo/server");
-const { startStandaloneServer } = require("@apollo/server/standalone");
+const { ApolloServer } = require("@apollo/server")
+const { startStandaloneServer } = require("@apollo/server/standalone")
+const mongoose = require('mongoose')
+mongoose.set('strictQuery', false)
+const Author = require('./models/Author')
+const Book = require('./models/Book')
+const { GraphQLError } = require('graphql')
+
+require('dotenv').config()
+
+const MONGODB_URI = process.env.MONGODB_URI
+
 
 let authors = [
   {
@@ -93,16 +103,14 @@ let books = [
   },
 ];
 
-/*
-  you can remove the placeholder query once your first one has been implemented 
-*/
 
 const typeDefs = `
   type Book {
     title: String!
-    author: String!
+    author: Author!
     published: Int!
     genres: [String!]!
+    id: ID!
   }
 
   type Author {
@@ -124,58 +132,84 @@ const typeDefs = `
       author: String!
       published: Int!
       genres: [String!]!
-    ): Book
+    ): Book!
 
     editAuthor(
       name: String!
       setBornTo: Int!
     ): Author
   }
-`;
+`
+
+
+console.log('connecting to', MONGODB_URI)
+
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('connected to MongoDB')
+  }
+  )
+  .catch((error) => {
+    console.log('error connection to MongoDB:', error.message)
+  })
+
+Book.deleteMany({})
 
 const resolvers = {
   Query: {
-    bookCount: () => books.length,
-    authorCount: () => authors.length,
-    allBooks: (root, args) => {
-      let returned = books;
+    bookCount: async () => Book.collection.countDocuments(),
+    authorCount: async () => Author.collection.countDocuments(),
+    allBooks: async (root, args) => {
+      let returned = Book.find({});
       if (args.author) {
-        returned = returned.filter((book) => book.author === args.author);
+        returned = Book.find({ author: args.author })
       }
       if (args.genre) {
-        returned = returned.filter((book) => book.genres.includes(args.genre));
+        returned = Book.find({ genres: args.genre })
       }
-      return returned;
+      return returned
     },
-    allAuthors: (root, args) => authors,
+    allAuthors: async (root, args) => {
+      return Author.find({})
+    },
   },
   Author: {
     bookCount: (root) => {
-      return books.filter((book) => book.author === root.name).length;
+      return Book.collection.countDocuments({ author: root._id })
     },
   },
   Mutation: {
-    addBook: (root, args) => {
-      const book = { ...args };
-      if (!authors.find((author) => author.name === args.author)) {
-        const author = { name: args.author };
-        authors = authors.concat(author);
-      }
-      books = books.concat(book);
-      return book;
-    },
-    editAuthor: (root, args) => {
-      const author = authors.find((author) => author.name === args.name);
+    addBook: async (root, args) => {
+      var author = await Author.findOne({ name: args.author })
       if (!author) {
-        return null;
+        console.log("tehdään author")
+        try {
+          author = new Author({ name: args.author })
+          await author.save()
+        } catch (error) {
+          throw new GraphQLError('Saving author failed', {
+            extensions: { code: 'BAD_USER_INPUT', invalidArgs: args.name, error }
+          })
+        }
       }
-
-      const updatedAuthor = { ...author, born: args.setBornTo };
-      authors = authors.map((a) => (a.name === args.name ? updatedAuthor : a));
-      return updatedAuthor;
+      const book = new Book({ ...args, author: author._id })
+      try {
+        await book.save()
+      } catch (error) {
+        throw new GraphQLError('Saving book failed', {
+          extensions: { code: 'BAD_USER_INPUT', invalidArgs: args.name, error }
+        })
+      }
+      return book
     },
-  },
-};
+    editAuthor: async (root, args) => {
+      const author = await Author.findOne({ name: args.name })
+      author.born = args.setBornTo
+      return author.save()
+    },
+  }
+}
+
 
 const server = new ApolloServer({
   typeDefs,
