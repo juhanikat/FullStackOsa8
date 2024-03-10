@@ -39,17 +39,17 @@ const Books = (props) => {
       <h2>books</h2>
 
       <table>
-        <tbody>
-          <tr>
+        <tbody key="body">
+          <tr key="tr1">
             <th key={1}>name</th>
             <th key={2}>author</th>
             <th key={3}>published</th>
           </tr>
           {books.map((a) => (
-            <tr>
-              <td key={a.title}>{a.title}</td>
-              <td key={a.author.name}>{a.author.name}</td>
-              <td key={a.published}>{a.published}</td>
+            <tr key={`${JSON.stringify(a)}tr`}>
+              <td key={`${JSON.stringify(a)}1`}>{a.title}</td>
+              <td key={`${JSON.stringify(a)}2`}>{a.author.name}</td>
+              <td key={`${JSON.stringify(a)}3`}>{a.published}</td>
             </tr>
           ))}
         </tbody>

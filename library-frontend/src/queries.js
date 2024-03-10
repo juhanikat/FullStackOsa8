@@ -23,7 +23,19 @@ const ALL_BOOKS = gql`
         }
     }
 `
-
+const FAVORITE_GENRE_BOOKS = gql`
+    query favoriteGenreBooks {
+        favoriteGenreBooks {
+            title
+            author {
+                name
+                born
+            }
+            published
+            genres
+        }
+    }
+`
 const ADD_BOOK = gql`
 mutation createBook($title: String!, $author: String!, $published: Int!, $genres: [String!]!) {
     addBook(
@@ -47,7 +59,7 @@ mutation changeBirthYear($name: String!, $setBornTo: Int!) {
     ) {
         name
         born
-    }null
+    } null
 }
 
 `
@@ -62,4 +74,9 @@ mutation login($username: String!, $password: String!) {
     }
 }`
 
-export { ALL_AUTHORS, ALL_BOOKS, ADD_BOOK, CHANGE_BIRTHYEAR, LOGIN }
+const RESET = gql`
+mutation deleteEverything {
+    deleteEverything
+}
+`
+export { ALL_AUTHORS, ALL_BOOKS, ADD_BOOK, CHANGE_BIRTHYEAR, LOGIN, RESET, FAVORITE_GENRE_BOOKS }
