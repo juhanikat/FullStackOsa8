@@ -9,6 +9,7 @@ const User = require('./models/User')
 
 const jwt = require('jsonwebtoken')
 
+
 require('dotenv').config()
 
 const MONGODB_URI = process.env.MONGODB_URI
@@ -123,7 +124,6 @@ const typeDefs = `
     author: Author!
     published: Int!
     genres: [String!]!
-    id: ID!
   }
 
   type Author {
@@ -187,10 +187,10 @@ const resolvers = {
     allBooks: async (root, args) => {
       let returned = Book.find({}).populate("author")
       if (args.author) {
-        returned = Book.find({ author: args.author })
+        returned = Book.find({ author: args.author }).populate("author")
       }
       if (args.genre) {
-        returned = Book.find({ genres: { "$in": [args.genre] } })
+        returned = Book.find({ genres: { "$in": [args.genre] } }).populate("author")
       }
       return returned
     },
@@ -213,7 +213,7 @@ const resolvers = {
   },
   Author: {
     bookCount: (root) => {
-      return Book.collection.countDocuments({ author: root._id })
+      return Book.collection.countDocuments({ author: root.id })
     },
   },
   Mutation: {
@@ -277,6 +277,7 @@ const resolvers = {
           extensions: { code: 'BAD_USER_INPUT', invalidArgs: args.name, error }
         })
       }
+      await book.populate("author")
       return book
     },
     editAuthor: async (root, args, context) => {
@@ -293,6 +294,7 @@ const resolvers = {
       return author.save()
     },
     deleteEverything: async (root, args) => {
+      // used to reset database to default values
       await Book.deleteMany({})
       await Author.deleteMany({})
       const author1 = new Author({ name: "Joku", born: 1991 })
