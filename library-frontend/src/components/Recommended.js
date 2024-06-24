@@ -24,14 +24,14 @@ const Recommended = (props) => {
             <h3>books in your favorite genre patterns</h3>
 
             <table>
-                <tbody>
-                    <tr>
+                <tbody key="tbody">
+                    <tr key="tr1">
                         <th key={1}>name</th>
                         <th key={2}>author</th>
                         <th key={3}>published</th>
                     </tr>
                     {books.map((a) => (
-                        <tr>
+                        <tr key={a.title + a.author.name}>
                             <td key={a.title}>{a.title}</td>
                             <td key={a.author.name}>{a.author.name}</td>
                             <td key={a.published}>{a.published}</td>
