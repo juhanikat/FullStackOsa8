@@ -95,4 +95,18 @@ mutation deleteEverything {
     deleteEverything
 }
 `
-export { ALL_AUTHORS, ALL_BOOKS, ADD_BOOK, CHANGE_BIRTHYEAR, LOGIN, RESET, FAVORITE_GENRE_BOOKS, BOOKS_WITH_SPESIFIC_GENRE }
+
+const BOOK_ADDED = gql` 
+subscription {  
+    bookAdded {  
+        title
+        author {
+            name
+            born
+        }
+        published
+        genres
+    } 
+} 
+`
+export { ALL_AUTHORS, ALL_BOOKS, ADD_BOOK, CHANGE_BIRTHYEAR, LOGIN, RESET, FAVORITE_GENRE_BOOKS, BOOKS_WITH_SPESIFIC_GENRE, BOOK_ADDED }
