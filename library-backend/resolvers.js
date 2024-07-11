@@ -39,11 +39,6 @@ const resolvers = {
             return Author.find({})
         },
     },
-    Author: {
-        bookCount: (root) => {
-            return Book.collection.countDocuments({ author: root.id })
-        },
-    },
     Mutation: {
         createUser: async (root, args) => {
             const user = new User({ username: args.username, favoriteGenre: args.favoriteGenre, password: "secret" })
@@ -107,7 +102,8 @@ const resolvers = {
             }
             await book.populate("author")
             pubsub.publish('BOOK_ADDED', { bookAdded: book })
-
+            author.bookCount = author.bookCount + 1
+            await author.save()
             return book
         },
         editAuthor: async (root, args, context) => {
@@ -127,8 +123,8 @@ const resolvers = {
             // used to reset database to default values
             await Book.deleteMany({})
             await Author.deleteMany({})
-            const author1 = new Author({ name: "Joku", born: 1991 })
-            const author2 = new Author({ name: "JK Rowling", born: 1980 })
+            const author1 = new Author({ name: "Joku", born: 1991, bookCount: 1 })
+            const author2 = new Author({ name: "JK Rowling", born: 1980, bookCount: 1 })
             await author1.save()
             await author2.save()
             const book1 = new Book({ title: "testikirja1", published: 2000, author: author1.id, genres: ["fiction", "comedy"] })

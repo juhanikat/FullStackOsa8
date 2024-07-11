@@ -15,10 +15,8 @@ export const updateCache = (cache, query, addedBook) => {
     let seen = new Set()
     const filtered = books.filter((item) => {
       let k = item.title
-      console.log(k)
       return seen.has(k) ? false : seen.add(k)
     })
-    console.log(filtered)
     return filtered
   }
   cache.updateQuery(query, ({ allBooks }) => {

@@ -10,8 +10,12 @@ const schema = new mongoose.Schema({
         minlength: 4
     },
     born: {
-        type: Number,
+        type: Number
     },
+    bookCount: {
+        type: Number,
+        default: 0
+    }
 })
 
 schema.plugin(uniqueValidator)
